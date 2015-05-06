@@ -1,0 +1,150 @@
+#include <iostream>
+#include <fstream>
+
+// include input and output archivers
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
+// include this header to serialize map
+#include <boost/serialization/map.hpp>
+
+using namespace std;
+
+class CoorPair
+{
+    friend class boost::serialization::access;
+ 
+    // Serialize the std::vector member of Info
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & x;
+      ar & y;    
+    }
+
+public:
+	int x;
+	int y;
+	// we have to provide a default constructor
+	CoorPair(){};
+	CoorPair(int x0,int y0){x=x0;y=y0;}
+};
+
+
+
+int main()
+{
+
+  std::map<int,int> v = {{1,2},{2,1}};
+
+  // serialize map
+  {
+    std::ofstream ofs("/tmp/copy.ser");
+    boost::archive::text_oarchive oa(ofs);
+    oa & v;
+  }
+
+  std::map<int,int> v2;
+
+   // load serialized vector into vector 2
+   {
+     std::ifstream ifs("/tmp/copy.ser");
+     boost::archive::text_iarchive ia(ifs);
+     ia & v2;
+   }
+
+   // printout v2 values
+   for (auto &d: v2 ) {
+      std::cout << d.first << endl;
+      std::cout << d.second << endl;
+   }
+
+
+		std::map<int,CoorPair> v3;
+		  v3[1]=CoorPair(1,1);
+		  v3[3]=CoorPair(2,2);
+		  
+		  {
+		   std::ofstream ofs("/tmp/copyCoor.ser");
+		   boost::archive::text_oarchive oa(ofs);
+		   oa & v3;
+		  }
+ 	std::map<int,CoorPair> v4;
+
+		  {
+		   std::ifstream ifs("/tmp/copyCoor.ser");
+		   boost::archive::text_iarchive ia(ifs);
+		   ia & v4;
+		  }
+
+		std::cout << v4.size() << std::endl;
+   for (auto &d: v4 ) {
+   
+      std::cout << d.first << endl;
+      std::cout << d.second.x << endl;
+      std::cout << d.second.y << endl;
+   }
+
+
+		std::map<int,CoorPair* > v5,v7;
+			v5[5]=new CoorPair(2,3);
+			v5[6]=new CoorPair(3,2);
+			v7[1]=v5[5];
+			v7[2]=v5[6];
+			
+		  {
+		   std::ofstream ofs("/tmp/copyCoor2.ser");
+		   boost::archive::text_oarchive oa(ofs);
+		   oa & v5;
+		  }
+ 
+ std::map<int,CoorPair* > v6;
+
+			
+			
+		  {
+		   std::ifstream ifs("/tmp/copyCoor2.ser");
+		   boost::archive::text_iarchive ia(ifs);
+		   ia & v6;
+		  }
+ 
+ 		std::cout << v6.size() << std::endl;
+   for (auto &d: v6 ) {
+   
+      std::cout << d.first << endl;
+      std::cout << d.second->x << endl;
+      std::cout << d.second->y << endl;
+   }
+ 
+// now i serialize v7 and restore to v8 to see whehter v8 v6 point to the same memory
+
+ {
+		   std::ofstream ofs("/tmp/copyCoor3.ser");
+		   boost::archive::text_oarchive oa(ofs);
+		   oa & v7;
+		  }
+ 
+ std::map<int,CoorPair* > v8;			
+		  {
+		   std::ifstream ifs("/tmp/copyCoor3.ser");
+		   boost::archive::text_iarchive ia(ifs);
+		   ia & v8;
+		  }
+		  
+ 		std::cout << v8.size() << std::endl;
+   for (auto &d: v8 ) {
+   
+      std::cout << d.first << endl;
+      std::cout << d.second->x << endl;
+      std::cout << d.second->y << endl;
+   }		  
+		  
+		  
+		  std::cout << v8[1] << endl;
+		  std::cout << v6[5] << endl;
+
+
+
+
+  return 0;
+}

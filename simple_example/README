@@ -1,0 +1,12 @@
+how to build
+
+g++ -I/opt/boost/boost_1_57_0 -c test1.cpp 
+
+
+g++ -L/opt/boost/boost_1_57_0/stage/lib -o test1 test1.o -lboost_serialization
+
+
+finally set
+
+export LD_LIBRARY_PATH=/opt/boost/boost_1_57_0/stage/lib:$LD_LIBRARY_PATH
+
